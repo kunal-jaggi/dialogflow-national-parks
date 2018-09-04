@@ -32,22 +32,78 @@ const pictureMap = {
   },
   display: 'WHITE',
 }),
-'pink unicorn': new BasicCard({
-  title: 'Pink Unicorn',
+'smokies': new BasicCard({
+  title: 'Great Smoky Mountains National Park',
   image: {
-    url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDbFVfTXpoaEE5Vzg/style-color-uiapplication-palette2.png',
-    accessibilityText: 'Pink Unicorn Color',
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/894/89492.adapt.676.1.jpg',
+    accessibilityText: 'Great Smoky Mountains National Park',
   },
   display: 'WHITE',
 }),
-'blue grey coffee': new BasicCard({
-  title: 'Blue Grey Coffee',
+'canyon': new BasicCard({
+  title: 'Grand Canyon National Park',
   image: {
-    url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDZUdpeURtaTUwLUk/style-color-colorsystem-gray-secondary-161116.png',
-    accessibilityText: 'Blue Grey Coffee Color',
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/334/33476.adapt.676.1.jpg',
+    accessibilityText: 'Grand Canyon National Park',
   },
   display: 'WHITE',
 }),
+'glacier': new BasicCard({
+  title: 'Glacier National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/894/89495.adapt.676.1.jpg',
+    accessibilityText: 'Glacier National Park',
+  },
+  display: 'WHITE',
+}),
+'olympic': new BasicCard({
+  title: 'Olympic National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/333/33319.adapt.676.1.jpg',
+    accessibilityText: 'Olympic National Park',
+  },
+  display: 'WHITE',
+}),
+'rocky': new BasicCard({
+  title: 'Rocky Mountain National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/333/33322.adapt.676.1.jpg',
+    accessibilityText: 'Rocky Mountain National Park',
+  },
+  display: 'WHITE',
+}),
+'teton': new BasicCard({
+  title: 'Grand Teton National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/333/33313.adapt.676.1.jpg',
+    accessibilityText: 'Grand Teton National Park',
+  },
+  display: 'WHITE',
+}),
+'yosemite': new BasicCard({
+  title: 'Yosemite National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/894/89493.adapt.676.1.jpg',
+    accessibilityText: 'Yosemite National Park',
+  },
+  display: 'WHITE',
+}),
+'zion': new BasicCard({
+  title: 'Zion National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/333/33328.adapt.676.1.jpg',
+    accessibilityText: 'Zion National Park',
+  },
+  display: 'WHITE',
+}),
+'acadia': new BasicCard({
+  title: 'Acadia National Park',
+  image: {
+    url: 'https://www.nationalgeographic.com/content/dam/travel/photos/000/333/33307.adapt.676.1.jpg',
+    accessibilityText: 'Acadia National Park',
+  },
+  display: 'WHITE',
+})
 };
 
 /**
@@ -93,7 +149,6 @@ app.intent('Know More', (conv, {about}) => {
 
   var response = '';
   const park = conv.user.storage.park;
-  console.log(`++++inside Know More intnt, the park name is ${park}`);
   const parkRef = collectionRef.doc(`${park}`);
 
   //Retrieve the data by calling the get() method
