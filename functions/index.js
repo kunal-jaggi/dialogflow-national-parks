@@ -133,7 +133,7 @@ app.intent('Park Name', (conv, {park}) => {
     .then((snapshot) => {
       conv.user.storage.park = term;
       const {keyFact} = snapshot.data();
-      conv.ask(`${keyFact}. I can also tell you its address, entry fees, phone or more facts. What can I help you with?`);
+      conv.ask(`${keyFact}. I can also tell you its address, entry fees, phone or more facts. How can I help you?`);
       return null;
     }).catch((e) => {
       console.log('error:', e);
