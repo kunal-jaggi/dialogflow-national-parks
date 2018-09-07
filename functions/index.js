@@ -6,11 +6,28 @@ const {
   dialogflow,
   BasicCard,
   Permission,
+  Suggestions,
+  SimpleResponse
 } = require('actions-on-google');
 
 // Import the firebase-functions package for deployment.
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+
+const parkSuggestions = [
+  'Yellowstone',
+  'Acadia',
+  'Smokies',
+  'Yosemite',
+  'Zion'
+];
+
+const aboutSuggestions = [
+  'fact',
+  'address',
+  'fees',
+  'phone'
+];
 
 // Instantiate the Dialogflow client.
 const app = dialogflow({debug: true});
@@ -121,6 +138,19 @@ const pictureMap = {
 //   }
 // });
 
+// Handle the Welcome intent
+app.intent('Default Welcome Intent', (conv) => {
+  conv.ask(new SimpleResponse({
+    speech: 'Hi there!',
+    text: 'Hello there!',
+  }));
+  conv.ask(new SimpleResponse({
+    speech: 'You can ask me general park info. Tell me the park name you would like to know more about?',
+    text: 'You can ask me general park info. Tell me the park name you would like to know more about?',
+  }));
+  conv.ask(new Suggestions(parkSuggestions));
+});
+
 // Handle the Dialogflow intent named 'favorite color'.
 // The intent collects a parameter named 'color'.
 app.intent('Park Name', (conv, {park}) => {
@@ -133,7 +163,11 @@ app.intent('Park Name', (conv, {park}) => {
     .then((snapshot) => {
       conv.user.storage.park = term;
       const {keyFact} = snapshot.data();
-      conv.ask(`${keyFact}. I can also tell you its address, entry fees, phone or more facts. How can I help you?`);
+      conv.ask(new SimpleResponse({
+        speech: `${keyFact}. I can also tell you its address, entry fees, phone or more facts. So, tell me how can I help you? Just say, address, fees, phone or fact to learn more.`,
+        text: `${keyFact}. I can also tell you its address, entry fees, phone or more facts. So, tell me how can I help you? Just say, address, fees, phone or fact to learn more.`,
+      }));
+      conv.ask(new Suggestions(aboutSuggestions));
       return null;
     }).catch((e) => {
       console.log('error:', e);
@@ -157,26 +191,36 @@ app.intent('Know More', (conv, {about}) => {
       const {name, phone, fees, keyFact, address, facts} = snapshot.data();
       switch (term) {
         case 'address':
-          response =  `The address for ${park} is, ${address}. Do you want to see a picture?`;
+          response =  `The address for ${park} National Park is, ${address}.`;
         break;
 
         case 'phone':
-          response = `The phone number for ${park} is, ${phone}. Do you want to see a picture?`;
+          response = `The phone number for ${park} National Park is, ${phone}.`;
         break;
 
         case 'fees':
-          response =  `Here's the entrance fees for ${park}. ${fees}. Do you want to see a picture?`;
+          response =  `Here's the entrance fees for ${park} National Park. ${fees}.`;
         break;
 
         case 'facts':
-          response = facts[Math.floor(Math.random() * 5)] + '. Do you want to see a picture?';
+          response = facts[Math.floor(Math.random() * 5)];
         break;
 
         default:
           response = `Sorry, I don't know about that`;
       }// swtich end
-      conv.ask(response);
-      return null;
+
+      //Check to see if the user agent supports a screen
+      if (conv.hasScreen) {
+          response += 'Do you want to see a picture?';
+          conv.ask(response);
+          return;
+      }
+      else{
+        conv.close(response);
+        return;
+      }
+
     }).catch((e) => {
       console.log('error:', e);
       conv.close('Sorry, I do not know  about ' + park);
