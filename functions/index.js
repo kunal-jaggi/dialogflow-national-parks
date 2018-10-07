@@ -29,6 +29,12 @@ const aboutSuggestions = [
   'phone'
 ];
 
+const yesOrnoSuggestions = [
+  'yes',
+  'no'
+];
+
+
 // Instantiate the Dialogflow client.
 const app = dialogflow({debug: true});
 
@@ -123,21 +129,6 @@ const pictureMap = {
 })
 };
 
-/**
-* Original impl uses a Map
-*/
-// Handle the Dialogflow intent named 'favorite color'.
-// The intent collects a parameter named 'color'.
-// app.intent('Park Name', (conv, {park}) => {
-//   const parkKey = responses.parkMap.get(park);
-//   if(!parkKey){
-//     conv.close('Sorry, I do not know  about ' + park);
-//   }else{
-//     conv.user.storage.park = park;
-//     conv.ask(responses.parkMap.get(park).keyFact +  `. I can also tell you its address, entry fees, phone or more facts. What can I help you with? `);
-//   }
-// });
-
 // Handle the Welcome intent
 app.intent('Default Welcome Intent', (conv) => {
   conv.ask(new SimpleResponse({
@@ -175,7 +166,6 @@ app.intent('Park Name', (conv, {park}) => {
     });
 });
 
-
 // Handle the Dialogflow intent named 'favorite color'.
 // The intent collects a parameter named 'color'.
 app.intent('Know More', (conv, {about}) => {
@@ -191,15 +181,15 @@ app.intent('Know More', (conv, {about}) => {
       const {name, phone, fees, keyFact, address, facts} = snapshot.data();
       switch (term) {
         case 'address':
-          response =  `The address for ${park} National Park is, ${address}.`;
+          response =  `The address for ${park} National Park is, ${address}`;
         break;
 
         case 'phone':
-          response = `The phone number for ${park} National Park is, ${phone}.`;
+          response = `The phone number for ${park} National Park is, ${phone}`;
         break;
 
         case 'fees':
-          response =  `Here's the entrance fees for ${park} National Park. ${fees}.`;
+          response =  `Here's the entrance fees for ${park} National Park. ${fees}`;
         break;
 
         case 'facts':
@@ -210,14 +200,20 @@ app.intent('Know More', (conv, {about}) => {
           response = `Sorry, I don't know about that`;
       }// swtich end
 
+      const hasScreen = conv.surface.capabilities.has('actions.capability.SCREEN_OUTPUT');
       //Check to see if the user agent supports a screen
-      if (conv.hasScreen) {
-          response += 'Do you want to see a picture?';
+      if (hasScreen) {
+          conv.user.storage.followUp = 'picture';
+          response += '. Do you want to see a picture?';
           conv.ask(response);
+          conv.ask(new Suggestions(yesOrnoSuggestions));
           return;
       }
       else{
-        conv.close(response);
+        conv.user.storage.followUp = 'park';
+        response += '. Now, would you like to hear more about another national park?';
+        conv.ask(response);
+        conv.ask(new Suggestions(yesOrnoSuggestions));
         return;
       }
 
@@ -229,10 +225,57 @@ app.intent('Know More', (conv, {about}) => {
 
 // Handle the Dialogflow intent named 'Know More - yes'.
 app.intent('Know More - yes', (conv) => {
-  // Present user with the corresponding basic card and end the conversation.
+  const hasScreen = conv.surface.capabilities.has('actions.capability.SCREEN_OUTPUT');
   const park = conv.user.storage.park;
-  conv.close(`Here's the picture`, pictureMap[park]);
+
+  if (hasScreen) {
+    //User has a screen, show picture and ask if the user wants to lean about another park
+    conv.ask(`Here's the picture. Now, would you like to hear more about another national park?`, pictureMap[park]);
+    conv.ask(new Suggestions(yesOrnoSuggestions));
+  }
+  else{
+    //User is not on a screen capable device, just ask which park is he interested about
+    conv.ask(new SimpleResponse({
+      speech: 'Tell me the park name you would like to know more about?',
+      text: 'Tell me the park name you would like to know more about?',
+    }));
+    conv.ask(new Suggestions(parkSuggestions));
+  }
 });
+
+// Handle the Dialogflow intent named 'Know More - yes'.
+app.intent('Know More - no', (conv) => {
+  const hasScreen = conv.surface.capabilities.has('actions.capability.SCREEN_OUTPUT');
+  if (hasScreen) {
+    conv.ask(new SimpleResponse({
+      speech: 'Now, would you like to hear more about another national park?',
+      text: 'Now, would you like to hear more about another national park?',
+    }));
+    conv.ask(new Suggestions(yesOrnoSuggestions));
+  }
+  else{
+      conv.close('Goodbye, see you next time! ');
+  }
+});
+
+// Handle the Dialogflow intent named 'Know More - yes'.
+app.intent('Know More - no - yes', (conv) => {
+    conv.ask(new SimpleResponse({
+      speech: 'Tell me the park name you would like to know more about?',
+      text: 'Tell me the park name you would like to know more about?',
+    }));
+    conv.ask(new Suggestions(parkSuggestions));
+});
+
+// Handle the Dialogflow intent named 'Know More - yes - yes'.
+app.intent('Know More - yes - yes', (conv) => {
+  conv.ask(new SimpleResponse({
+    speech: 'Tell me the park name you would like to know more about?',
+    text: 'Tell me the park name you would like to know more about?',
+  }));
+  conv.ask(new Suggestions(parkSuggestions));
+});
+
 
 // Set the DialogflowApp object to handle the HTTPS POST request.
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
